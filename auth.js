@@ -30,6 +30,7 @@ function saveUserToken(user) {
 }
 
 // 🔹 Sign Up
+// --- SIGNUP ---
 function signup() {
   const name = document.getElementById("name").value;
   const dept = document.getElementById("department").value;
@@ -50,22 +51,60 @@ function signup() {
 
       return user.updateProfile({ displayName: name })
         .then(() => {
+          // Save in Firestore
           return db.collection("users").doc(user.uid).set({
             name,
             department: dept,
             email,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
+        })
+        .then(() => {
+          // 🔹 Save name locally for instant greeting
+          localStorage.setItem("userName", name);
+          localStorage.setItem("userDept", dept);
+
+          window.location.href = "index1.html";
         });
-    })
-    .then(() => {
-      window.location.href = "index1.html";
     })
     .catch(err => {
       document.getElementById("message").textContent = err.message;
     })
     .finally(() => showLoader(false));
 }
+
+// --- GREETING (on index1.html only) ---
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    const greetEl = document.getElementById("greeting");
+
+    // 🔹 Check localStorage first (instant after signup)
+    const cachedName = localStorage.getItem("userName");
+    const cachedDept = localStorage.getItem("userDept");
+    if (cachedName && cachedDept) {
+      greetEl.textContent = `Hi, ${cachedName} (${cachedDept})`;
+      return;
+    }
+
+    // Otherwise fetch from Firestore
+    db.collection("users").doc(user.uid).get().then(doc => {
+      if (doc.exists) {
+        const userData = doc.data();
+        greetEl.textContent = `Hi, ${userData.name} (${userData.department})`;
+
+        // Cache for next time
+        localStorage.setItem("userName", userData.name);
+        localStorage.setItem("userDept", userData.department);
+      }
+    });
+  } else {
+    if (!window.location.pathname.includes("login.html") &&
+        !window.location.pathname.includes("signup.html")) {
+      window.location.href = "login.html";
+    }
+  }
+});
+
 
 // 🔹 Login
 function login() {
@@ -92,19 +131,20 @@ function login() {
 }
 
 // 🔹 Greeting Logic (only on index1.html)
-firebase.auth().onAuthStateChanged(user => {
+firebase.auth().onAuthStateChanged(async (user) => {
   if (user) {
-    db.collection("users").doc(user.uid).get().then(doc => {
-      if (doc.exists) {
+    try {
+      const doc = await db.collection("users").doc(user.uid).get();
+      const greetEl = document.getElementById("greeting");
+      if (doc.exists && greetEl) {
         const userData = doc.data();
-        const greetEl = document.getElementById("greeting");
-        if (greetEl) {
-          greetEl.textContent = `Hi, ${userData.name}`;
-        }
+        greetEl.textContent = `Hi, ${userData.name} (${userData.department})`;
       }
-    });
+    } catch (err) {
+      console.error("Error fetching user data:", err);
+    }
   } else {
-    // redirect if not logged in
+    // Redirect if not logged in
     if (!window.location.pathname.includes("login.html") &&
         !window.location.pathname.includes("signup.html")) {
       window.location.href = "login.html";
