@@ -1,5 +1,5 @@
 // Initialize Firebase
-  const firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyALIq-7sKX_yi4qbikHldoIDbymSem2gxg",
   authDomain: "sampledb-9009e.firebaseapp.com",
   projectId: "sampledb-9009e",
@@ -8,8 +8,9 @@
   appId: "1:894153581819:web:d1d73e4345957781cb3c5e",
   measurementId: "G-7EDBYZMJVR"
 };
+
 firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();  // Firestore reference
+const db = firebase.firestore();
 
 // Show/hide loader
 function showLoader(show, message = "") {
@@ -20,70 +21,7 @@ function showLoader(show, message = "") {
   }
 }
 
-// Sign Up
-function signup() {
-  const name = document.getElementById("name").value;
-  const dept = document.getElementById("department").value;
-  const email = document.getElementById("email").value;
-  const pass = document.getElementById("password").value;
-  const confirmPass = document.getElementById("confirmPassword").value;
-
-  if (pass !== confirmPass) {
-    document.getElementById("message").textContent = "Passwords do not match!";
-    return;
-  }
-
-  showLoader(true, "Creating account...");
-  firebase.auth().createUserWithEmailAndPassword(email, pass)
-    .then(userCred => {
-      const user = userCred.user;
-
-      // Save display name
-      return user.updateProfile({ displayName: name })
-        .then(() => {
-          // Save user data in Firestore
-          return db.collection("users").doc(user.uid).set({
-            name: name,
-            department: dept,
-            email: email,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
-        });
-    })
-    .then(() => {
-      window.location.href = "index1.html";
-    })
-    .catch(err => {
-      document.getElementById("message").textContent = err.message;
-    })
-    .finally(() => showLoader(false));
-}
-
-// Login
-function login() {
-  const email = document.getElementById("loginEmail").value;
-  const pass = document.getElementById("loginPassword").value;
-
-  showLoader(true, "Signing in...");
-  firebase.auth().signInWithEmailAndPassword(email, pass)
-    .then(userCred => {
-      const user = userCred.user;
-
-      // Fetch extra user data from Firestore
-      return db.collection("users").doc(user.uid).get();
-    })
-    .then(doc => {
-      if (doc.exists) {
-        console.log("User Data:", doc.data());  // you can use this in index1.html
-      }
-      window.location.href = "index1.html";
-    })
-    .catch(err => {
-      document.getElementById("message").textContent = err.message;
-    })
-    .finally(() => showLoader(false));
-}
-// Helper: Save token
+// Save token helper
 function saveUserToken(user) {
   user.getIdToken().then(token => {
     localStorage.setItem("userToken", token);
@@ -91,7 +29,7 @@ function saveUserToken(user) {
   });
 }
 
-// Sign Up
+// 🔹 Sign Up
 function signup() {
   const name = document.getElementById("name").value;
   const dept = document.getElementById("department").value;
@@ -108,15 +46,14 @@ function signup() {
   firebase.auth().createUserWithEmailAndPassword(email, pass)
     .then(userCred => {
       const user = userCred.user;
-      saveUserToken(user); // save token immediately
+      saveUserToken(user);
 
-      // Save display name
       return user.updateProfile({ displayName: name })
         .then(() => {
           return db.collection("users").doc(user.uid).set({
-            name: name,
+            name,
             department: dept,
-            email: email,
+            email,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
         });
@@ -130,7 +67,7 @@ function signup() {
     .finally(() => showLoader(false));
 }
 
-// Login
+// 🔹 Login
 function login() {
   const email = document.getElementById("loginEmail").value;
   const pass = document.getElementById("loginPassword").value;
@@ -139,8 +76,7 @@ function login() {
   firebase.auth().signInWithEmailAndPassword(email, pass)
     .then(userCred => {
       const user = userCred.user;
-      saveUserToken(user); // save token immediately
-
+      saveUserToken(user);
       return db.collection("users").doc(user.uid).get();
     })
     .then(doc => {
@@ -154,3 +90,24 @@ function login() {
     })
     .finally(() => showLoader(false));
 }
+
+// 🔹 Greeting Logic (only on index1.html)
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    db.collection("users").doc(user.uid).get().then(doc => {
+      if (doc.exists) {
+        const userData = doc.data();
+        const greetEl = document.getElementById("greeting");
+        if (greetEl) {
+          greetEl.textContent = `Hi, ${userData.name}`;
+        }
+      }
+    });
+  } else {
+    // redirect if not logged in
+    if (!window.location.pathname.includes("login.html") &&
+        !window.location.pathname.includes("signup.html")) {
+      window.location.href = "login.html";
+    }
+  }
+});
