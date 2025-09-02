@@ -27,6 +27,15 @@
       margin: 0 0 16px;
     }
 
+    /* Greeting styling */
+    #greeting {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1e40af;
+      margin-bottom: 16px;
+      text-align: right;
+    }
+
     label {
       display: block;
       margin-top: 12px;
@@ -139,7 +148,6 @@
     }
 
     /* dropzone styling */
-
     .dropzone {
       border: 2px dashed #3b82f6;
       border-radius: 12px;
@@ -161,19 +169,16 @@
       margin: 0;
       font-weight: 500;
     }
-
   </style>
 </head>
 
 <body>
-
-
-
   <div class="card">
+    <!-- Greeting -->
+    <div id="greeting">Hi, Guest</div>
+
     <h2>Trainer Feedback Report</h2>
 
-    <!-- <label>Upload Excel File (.xlsx)</label>
-    <input id="file" type="file" accept=".xlsx,.xls" /> -->
     <label>Upload Excel File (.xlsx)</label>
     <div id="dropzone" class="dropzone">
       <p>Drag & drop your file here, or click to select</p>
@@ -184,62 +189,18 @@
       <button id="parseBtn" class="btn">Parse & Preview</button>
       <button id="pdfBtn" class="btn" disabled hidden>Generate PDF</button>
       <button id="refreshQuestionsBtn" class="btn secondary">Refresh Questions</button>
-
-
-
     </div>
-   <!-- Only shown for single-trainer files -->
-<!-- Hidden until single-trainer is detected -->
-<div id="singleTrainerBox" style="display:none; margin-top:10px;">
-  <label for="singleTrainerName">Trainer Name:</label>
-  <input type="text" id="singleTrainerName" placeholder="Enter trainer name" />
-  <button id="confirmTrainerBtn" class="action-btn" type="button" style="margin-top: 10px;">Confirm & Preview</button>
-</div>
 
-<!-- Where download buttons will appear -->
-<div id="trainerReports"></div>
+    <!-- Single trainer box -->
+    <div id="singleTrainerBox" style="display:none; margin-top:10px;">
+      <label for="singleTrainerName">Trainer Name:</label>
+      <input type="text" id="singleTrainerName" placeholder="Enter trainer name" />
+      <button id="confirmTrainerBtn" class="action-btn" type="button" style="margin-top: 10px;">Confirm & Preview</button>
+    </div>
 
+    <!-- Where download buttons will appear -->
+    <div id="trainerReports"></div>
 
-</div>
-
-    <!-- new -->
-      <script>
-  const dropzone = document.getElementById("dropzone");
-  const fileInput = document.getElementById("file");
-
-  function showFileName(file) {
-    dropzone.querySelector("p").textContent = `Selected file: ${file.name}`;
-  }
-
-  dropzone.addEventListener("click", () => fileInput.click());
-
-  dropzone.addEventListener("dragover", e => {
-    e.preventDefault();
-    dropzone.classList.add("dragover");
-  });
-
-  dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
-
-  dropzone.addEventListener("drop", e => {
-    e.preventDefault();
-    dropzone.classList.remove("dragover");
-    if (e.dataTransfer.files.length) {
-      const file = e.dataTransfer.files[0];
-      fileInput.files = e.dataTransfer.files;
-      showFileName(file);
-      if (typeof handleFile === "function") handleFile(file);
-    }
-  });
-
-  fileInput.addEventListener("change", () => {
-    if (fileInput.files.length) {
-      const file = fileInput.files[0];
-      showFileName(file);
-      if (typeof handleFile === "function") handleFile(file);
-    }
-  });
-</script>
-   
     <hr style="margin:18px 0">
 
     <label>Manage Questions</label>
@@ -252,10 +213,10 @@
 
     <div id="output"></div>
     <div id="summaryOutput"></div>
-     <div id="output"></div>
-    <div id="trainerReports"></div>
   </div>
 
+
+</div>
   <!-- Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -263,9 +224,51 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
   <!-- Google GenAI SDK (browser build) -->
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+   <script src="auth.js"></script>
   <script type="module" src="./script.js"></script>
 
+  <!-- Greeting script -->
+  
+  <!-- Dropzone script -->
+  <script>
+    const dropzone = document.getElementById("dropzone");
+    const fileInput = document.getElementById("file");
 
+    function showFileName(file) {
+      dropzone.querySelector("p").textContent = `Selected file: ${file.name}`;
+    }
+
+    dropzone.addEventListener("click", () => fileInput.click());
+
+    dropzone.addEventListener("dragover", e => {
+      e.preventDefault();
+      dropzone.classList.add("dragover");
+    });
+
+    dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
+
+    dropzone.addEventListener("drop", e => {
+      e.preventDefault();
+      dropzone.classList.remove("dragover");
+      if (e.dataTransfer.files.length) {
+        const file = e.dataTransfer.files[0];
+        fileInput.files = e.dataTransfer.files;
+        showFileName(file);
+        if (typeof handleFile === "function") handleFile(file);
+      }
+    });
+
+    fileInput.addEventListener("change", () => {
+      if (fileInput.files.length) {
+        const file = fileInput.files[0];
+        showFileName(file);
+        if (typeof handleFile === "function") handleFile(file);
+      }
+    });
+  </script>
 </body>
-
 </html>
