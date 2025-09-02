@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+   body {
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  background: linear-gradient(135deg, #ffffff 0%, #fcfaff 100%);
+}
+
+.container {
+  background: #fff;
+  padding: 35px 28px;
+  border-radius: 14px;
+  width: 360px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 22px;
+  color: #222;
+  font-weight: 600;
+}
+
+input {
+  width: 100%;
+  padding: 12px 15px;
+  margin: 12px 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+input:focus {
+  border-color: #6a11cb;
+  outline: none;
+  box-shadow: 0 0 8px rgba(106, 17, 203, 0.4);
+}
+
+button {
+  width: 100%;
+  padding: 13px;
+  margin-top: 12px;
+  border: none;
+  border-radius: 8px;
+  background: #6a11cb;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.3s ease, transform 0.15s ease;
+}
+
+button:hover {
+  background: #5213a3;
+  transform: translateY(-2px);
+}
+
+#message {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 14px;
+  color: red;
+}
+
+#loader {
+  display: none;
+  text-align: center;
+  margin-top: 12px;
+  color: #6a11cb;
+  font-size: 14px;
+}
+
+p {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 14px;
+  color: #444;
+}
+
+p a {
+  color: #6a11cb;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+p a:hover {
+  text-decoration: underline;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+  </style>
+
+  <!-- Firebase App (core SDK) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+
+<!-- Firebase Authentication -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+<!-- Cloud Firestore -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<!-- Your auth.js (after Firebase scripts) -->
+<script src="auth.js"></script>
+
+</head>
+<body>
+     <div id="pageLoader" style="
+  display:none;
+  position:fixed;
+  top:0; left:0; right:0; bottom:0;
+  background:rgba(255,255,255,0.8);
+  display:flex; justify-content:center; align-items:center;
+  z-index:9999; font-size:22px; color:#6a11cb;
+">
+  <i class="fa-solid fa-spinner fa-spin"></i> Loading...
+</div>
+  <div class="container">
+    <h2>Welcome Back</h2>
+    <input type="email" id="loginEmail" placeholder="Email" required>
+    <input type="password" id="loginPassword" placeholder="Password" required>
+    <button onclick="login()">Login</button>
+    <div id="loader"><i class="fa-solid fa-spinner fa-spin"></i> Signing in...</div>
+    <div id="message"></div>
+    <p>Don’t have an account? <a href="signup.html" onclick="goToSignup()">Sign Up</a></p>
+    <div id="pageLoader" style="display:none; text-align:center; margin-top:10px; color:#6a11cb;">
+  <i class="fa-solid fa-spinner fa-spin"></i> Loading...
+  </div>
+  <script src="auth.js"></script>
+  <script>
+  // Hide loader on page load (important fix)
+  window.addEventListener("load", () => {
+    document.getElementById("pageLoader").style.display = "none";
+  });
+
+  function goToSignup() {
+    document.getElementById("pageLoader").style.display = "flex";
+    setTimeout(() => {
+      window.location.href = "signup.html";
+    }, 800);
+  }
+
+  function goToLogin() {
+    document.getElementById("pageLoader").style.display = "flex";
+    setTimeout(() => {
+      window.location.href = "login.html";
+    }, 800);
+  }
+</script>
+</body>
+</html>
