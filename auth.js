@@ -98,8 +98,12 @@ firebase.auth().onAuthStateChanged(user => {
       }
     });
   } else {
-    if (!window.location.pathname.includes("login.html") &&
-        !window.location.pathname.includes("signup.html")) {
+    // Redirect only if on protected pages (like index1.html)
+    const path = window.location.pathname;
+    const isLogin = path.includes("login.html");
+    const isSignup = path.includes("signup.html");
+
+    if (!isLogin && !isSignup) {
       window.location.href = "login.html";
     }
   }
