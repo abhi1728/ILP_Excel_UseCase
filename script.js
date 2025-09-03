@@ -661,7 +661,6 @@ function downloadReportAsPDF(trainerName) {
   });
 }
 
-
 /* ========== Helpers ========== */
 function escapeHtml(str) {
   if (typeof str !== 'string') return str;

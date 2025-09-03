@@ -1,4 +1,4 @@
-// Initialize Firebase
+// ================== FIREBASE INIT ==================
 const firebaseConfig = {
   apiKey: "AIzaSyALIq-7sKX_yi4qbikHldoIDbymSem2gxg",
   authDomain: "sampledb-9009e.firebaseapp.com",
@@ -9,10 +9,13 @@ const firebaseConfig = {
   measurementId: "G-7EDBYZMJVR"
 };
 
-firebase.initializeApp(firebaseConfig);
+// Avoid re-initialization if firebase.apps already exists
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
 const db = firebase.firestore();
 
-// Show/hide loader
+// ================== HELPERS ==================
 function showLoader(show, message = "") {
   const loader = document.getElementById("loader");
   if (loader) {
@@ -21,16 +24,13 @@ function showLoader(show, message = "") {
   }
 }
 
-// Save token helper
 function saveUserToken(user) {
   user.getIdToken().then(token => {
     localStorage.setItem("userToken", token);
-    console.log("Token saved:", token);
   });
 }
 
-// 🔹 Sign Up
-// --- SIGNUP ---
+// ================== SIGNUP ==================
 function signup() {
   const name = document.getElementById("name").value;
   const dept = document.getElementById("department").value;
@@ -51,7 +51,6 @@ function signup() {
 
       return user.updateProfile({ displayName: name })
         .then(() => {
-          // Save in Firestore
           return db.collection("users").doc(user.uid).set({
             name,
             department: dept,
@@ -60,10 +59,9 @@ function signup() {
           });
         })
         .then(() => {
-          // 🔹 Save name locally for instant greeting
+          // Cache locally for instant greeting
           localStorage.setItem("userName", name);
           localStorage.setItem("userDept", dept);
-
           window.location.href = "index1.html";
         });
     })
@@ -73,40 +71,7 @@ function signup() {
     .finally(() => showLoader(false));
 }
 
-// --- GREETING (on index1.html only) ---
-firebase.auth().onAuthStateChanged(user => {
-  if (user) {
-    const greetEl = document.getElementById("greeting");
-
-    // 🔹 Check localStorage first (instant after signup)
-    const cachedName = localStorage.getItem("userName");
-    const cachedDept = localStorage.getItem("userDept");
-    if (cachedName && cachedDept) {
-      greetEl.textContent = `Hi, ${cachedName} (${cachedDept})`;
-      return;
-    }
-
-    // Otherwise fetch from Firestore
-    db.collection("users").doc(user.uid).get().then(doc => {
-      if (doc.exists) {
-        const userData = doc.data();
-        greetEl.textContent = `Hi, ${userData.name} (${userData.department})`;
-
-        // Cache for next time
-        localStorage.setItem("userName", userData.name);
-        localStorage.setItem("userDept", userData.department);
-      }
-    });
-  } else {
-    if (!window.location.pathname.includes("login.html") &&
-        !window.location.pathname.includes("signup.html")) {
-      window.location.href = "login.html";
-    }
-  }
-});
-
-
-// 🔹 Login
+// ================== LOGIN ==================
 function login() {
   const email = document.getElementById("loginEmail").value;
   const pass = document.getElementById("loginPassword").value;
@@ -125,29 +90,69 @@ function login() {
       window.location.href = "index1.html";
     })
     .catch(err => {
-      document.getElementById("message").textContent = err.message;
+      document.getElementById("message").textContent = "Invalid Credentials :(";
     })
     .finally(() => showLoader(false));
 }
 
-// 🔹 Greeting Logic (only on index1.html)
+// ================== LOGOUT ==================
+function logout() {
+  showLoader(true, "Logging out...");
+  firebase.auth().signOut()
+    .then(() => {
+      localStorage.clear();
+      showLoader(false);
+      window.location.href = "login.html";
+    })
+    .catch(err => {
+      console.error("Logout Error:", err);
+      showLoader(false);
+      alert("Error logging out. Try again.");
+    });
+}
+
+// ================== GREETING (INDEX1 ONLY) ==================
 firebase.auth().onAuthStateChanged(async (user) => {
+  const greetEl = document.getElementById("greeting");
+
   if (user) {
     try {
+      // Use cached first (after signup)
+      const cachedName = localStorage.getItem("userName");
+      const cachedDept = localStorage.getItem("userDept");
+
+      if (greetEl && cachedName && cachedDept) {
+        greetEl.textContent = `Hi, ${cachedName} (${cachedDept})`;
+        return;
+      }
+
+      // Otherwise fetch from Firestore
       const doc = await db.collection("users").doc(user.uid).get();
-      const greetEl = document.getElementById("greeting");
       if (doc.exists && greetEl) {
-        const userData = doc.data();
-        greetEl.textContent = `Hi, ${userData.name} (${userData.department})`;
+        const data = doc.data();
+        greetEl.textContent = `Hi, ${data.name} (${data.department})`;
+
+        // Cache for faster future load
+        localStorage.setItem("userName", data.name);
+        localStorage.setItem("userDept", data.department);
       }
     } catch (err) {
       console.error("Error fetching user data:", err);
     }
   } else {
-    // Redirect if not logged in
-    if (!window.location.pathname.includes("login.html") &&
-        !window.location.pathname.includes("signup.html")) {
+    // Redirect only if on protected pages (like index1.html)
+    const path = window.location.pathname;
+    const isLogin = path.includes("login.html");
+    const isSignup = path.includes("signup.html");
+
+    if (!isLogin && !isSignup) {
       window.location.href = "login.html";
     }
   }
+});
+
+// ================== PAGE LOADER FIX ==================
+window.addEventListener("load", () => {
+  const pageLoader = document.getElementById("pageLoader");
+  if (pageLoader) pageLoader.style.display = "none";
 });
